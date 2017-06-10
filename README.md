@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ffd80e0622a448969f63e762c77cfca6)](https://www.codacy.com/app/avrabe/CarND-Kidnapped-Vehicle-Project?utm_source=github.com&utm_medium=referral&utm_content=avrabe/CarND-Kidnapped-Vehicle-Project&utm_campaign=badger)
 [![Code Climate](https://codeclimate.com/github/avrabe/CarND-Kidnapped-Vehicle-Project/badges/gpa.svg)](https://codeclimate.com/github/avrabe/CarND-Kidnapped-Vehicle-Project)
 [![Build Status](https://travis-ci.org/avrabe/CarND-Kidnapped-Vehicle-Project.svg?branch=master)](https://travis-ci.org/avrabe/CarND-Kidnapped-Vehicle-Project)
 
