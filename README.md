@@ -1,3 +1,6 @@
+[![Code Climate](https://codeclimate.com/github/avrabe/CarND-Kidnapped-Vehicle-Project/badges/gpa.svg)](https://codeclimate.com/github/avrabe/CarND-Kidnapped-Vehicle-Project)
+[![Build Status](https://travis-ci.org/avrabe/CarND-Kidnapped-Vehicle-Project.svg?branch=master)](https://travis-ci.org/avrabe/CarND-Kidnapped-Vehicle-Project)
+
 # Overview
 This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
 
