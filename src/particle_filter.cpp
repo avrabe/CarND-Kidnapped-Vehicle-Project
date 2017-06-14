@@ -53,21 +53,23 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     //  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
     //  http://www.cplusplus.com/reference/random/default_random_engine/
 
-    for (auto &particle: particles) {
+    for (auto &&particle: particles) {
         double_t new_x;
         double_t new_y;
         double_t new_theta;
 
         if (yaw_rate == 0) {
             new_theta = particle.theta;
-            new_x = particle.x + velocity * delta_t * cos(particle.theta);
-            new_y = particle.y + velocity * delta_t * sin(particle.theta);
+            double_t v_t_d = velocity * delta_t;
+            new_x = particle.x + v_t_d * cos(particle.theta);
+            new_y = particle.y + v_t_d * sin(particle.theta);
 
         } else {
             new_theta = particle.theta + yaw_rate * delta_t;
-            new_x = particle.x + velocity / yaw_rate * (sin(new_theta) - sin(particle.theta));
-            new_y = particle.y + velocity / yaw_rate * (cos(particle.theta) - cos(new_theta));
+            new_x = particle.x + (velocity / yaw_rate) * (sin(new_theta) - sin(particle.theta));
+            new_y = particle.y + (velocity / yaw_rate) * (cos(particle.theta) - cos(new_theta));
         }
+
         std::normal_distribution<double_t> N_x(new_x, std_pos[0]);
         std::normal_distribution<double_t> N_y(new_y, std_pos[1]);
         std::normal_distribution<double_t> N_theta(new_theta, std_pos[2]);
@@ -104,22 +106,22 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         std::vector<double> sense_x;
         std::vector<double> sense_y;
         double_t weight = 1.0;
+        w_max = std::numeric_limits<double>::min();
 
-        particle.weight = weight;
+        double_t cos_p_t = cos(particle.theta);
+        double_t sin_p_t = sin(particle.theta);
 
         for (auto observation: observations) {
             // translate the observation into MAP coordinates
-            LandmarkObs tobservation;
-            tobservation.id = observation.id;
-            tobservation.x = particle.x + (observation.x * cos(particle.theta) - observation.y * sin(particle.theta));
-            tobservation.y = particle.y + (observation.x * sin(particle.theta) + observation.y * cos(particle.theta));
-
+            double_t tobs_x = particle.x + (observation.x * cos_p_t - observation.y * sin_p_t);
+            double_t tobs_y = particle.y + (observation.x * sin_p_t + observation.y * cos_p_t);
             // nearest neighbor search
             __long_double_t min_dist = std::numeric_limits<__long_double_t>::max();
             __long_double_t distance = sensor_range;
             int association = -1;
             for (auto landmark : map_landmarks.landmark_list) {
-                distance = sqrt(pow(landmark.x_f - tobservation.x, 2.0) + pow(landmark.y_f - tobservation.y, 2.0));
+                //distance = sqrt(pow(landmark.x_f - tobs_x, 2.0) + pow(landmark.y_f - tobs_y, 2.0));
+                distance = hypot((tobs_x - landmark.x_f), (tobs_y - landmark.y_f));
                 if (distance < min_dist) {
                     min_dist = distance;
                     association = landmark.id_i;
@@ -128,22 +130,23 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             if (association >= 0) {
                 double min_x = map_landmarks.landmark_list[association].x_f;
                 double min_y = map_landmarks.landmark_list[association].y_f;
-                __long_double_t f = 1.0 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
-                __long_double_t xx = pow(tobservation.x - min_x, 2.0) / (2 * pow(std_landmark[0], 2.0));
-                __long_double_t yy = pow(tobservation.y - min_y, 2.0) / (2 * pow(std_landmark[1], 2.0));
-                f = f * exp(-1 * (xx + yy));
 
-                if (f > 0.000000000000000001 && f < std::numeric_limits<__long_double_t>::max()) {
+                __long_double_t f = 1.0 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
+                __long_double_t xx = pow(min_x - tobs_x, 2.0) / (2 * pow(std_landmark[0], 2.0));
+                __long_double_t yy = pow(min_y - tobs_y, 2.0) / (2 * pow(std_landmark[1], 2.0));
+                f = f * exp(-1 * (xx + yy));
+                cout << particle.id << " " << f << endl;
+                if (f > 0 && f < std::numeric_limits<__long_double_t>::max()) {
                     weight *= f;
                     //assert(weight > 0.0 && weight < 100.0);
                 }
                 associations.push_back(association);
-                sense_x.push_back(tobservation.x);
-                sense_y.push_back(tobservation.y);
+                sense_x.push_back(tobs_x);
+                sense_y.push_back(tobs_y);
             }
-            //cout << landmark.x << " " << landmark.y << " " << observation.x << " " << observation.y << " " << particle.x << " " << particle.y << endl;
         }
         particle.weight = weight;
+        w_max = (max)(w_max, weight);
         SetAssociations(particle, associations, sense_x, sense_y);
     }
 }
@@ -153,12 +156,10 @@ void ParticleFilter::resample() {
     // NOTE: You may find std::discrete_distribution helpful here.
     //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     std::vector<Particle> new_particles;
-    double w_max = std::numeric_limits<double>::min();
-
     for (auto &&particle: particles) {
-        w_max = max(particle.weight, w_max);
+        cout << particle.weight << " ";
     }
-
+    cout << endl;
     int index = 0;
     double_t beta = 0.0;
     std::uniform_real_distribution<double> distribution(0.0, 2 * w_max);
@@ -171,6 +172,10 @@ void ParticleFilter::resample() {
         new_particles.push_back(particles[index]);
     }
     particles = new_particles;
+    for (int i = 0; i < num_particles; i++) {
+        particles[i].id = i;
+        particles[i].weight = 1.0;
+    }
 }
 
 void ParticleFilter::SetAssociations(Particle &particle, std::vector<int> associations, std::vector<double> sense_x,

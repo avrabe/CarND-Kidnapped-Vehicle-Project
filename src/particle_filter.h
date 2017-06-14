@@ -40,6 +40,8 @@ class ParticleFilter {
 	std::vector<double> weights;
 
 	std::default_random_engine gen;
+
+	double_t w_max;
 	
 public:
 	
