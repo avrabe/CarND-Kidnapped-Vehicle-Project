@@ -10,7 +10,6 @@
 #define PARTICLE_FILTER_H_
 
 #include "helper_functions.h"
-#include <random>
 
 struct Particle {
 
@@ -27,24 +26,20 @@ struct Particle {
 
 
 class ParticleFilter {
-	
+
 	// Number of particles to draw
-	int num_particles; 
-	
-	
-	
+	int num_particles;
+
+
+
 	// Flag, if filter is initialized
 	bool is_initialized;
-	
+
 	// Vector of weights of all particles
 	std::vector<double> weights;
 
-	std::default_random_engine gen;
-
-	double_t w_max;
-	
 public:
-	
+
 	// Set of current particles
 	std::vector<Particle> particles;
 
@@ -76,7 +71,7 @@ public:
 	 * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
 	 */
 	void prediction(double delta_t, double std_pos[], double velocity, double yaw_rate);
-	
+
 	/**
 	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
 	 *   a nearest-neighbors data association).
@@ -84,10 +79,10 @@ public:
 	 * @param observations Vector of landmark observations
 	 */
 	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
-	
+
 	/**
-	 * updateWeights Updates the weights for each particle based on the likelihood of the 
-	 *   observed measurements. 
+	 * updateWeights Updates the weights for each particle based on the likelihood of the
+	 *   observed measurements.
 	 * @param sensor_range Range [m] of sensor
 	 * @param std_landmark[] Array of dimension 2 [standard deviation of range [m],
 	 *   standard deviation of bearing [rad]]
@@ -95,8 +90,8 @@ public:
 	 * @param map Map class containing map landmarks
 	 */
 	void updateWeights(double sensor_range, double std_landmark[], std::vector<LandmarkObs> observations,
-			Map map_landmarks);
-	
+					   Map map_landmarks);
+
 	/**
 	 * resample Resamples from the updated set of particles to form
 	 *   the new set of particles.
@@ -107,9 +102,9 @@ public:
 	 * Set a particles list of associations, along with the associations calculated world x,y coordinates
 	 * This can be a very useful debugging tool to make sure transformations are correct and assocations correctly connected
 	 */
-    void SetAssociations(Particle &particle, std::vector<int> associations, std::vector<double> sense_x,
-                         std::vector<double> sense_y);
-	
+	Particle SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x,
+							 std::vector<double> sense_y);
+
 	std::string getAssociations(Particle best);
 	std::string getSenseX(Particle best);
 	std::string getSenseY(Particle best);

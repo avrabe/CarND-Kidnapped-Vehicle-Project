@@ -20,6 +20,10 @@
 
 using namespace std;
 
+std::default_random_engine gen;
+
+double_t w_max;
+
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
     // TODO: Set the number of particles. Initialize all particles to first position (based on estimates of
     //   x, y, theta and their uncertainties from GPS) and all weights to 1.
@@ -157,7 +161,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         }
         particle.weight = weight;
         w_max = (max)(w_max, particle.weight);
-        SetAssociations(particle, associations, sense_x, sense_y);
+
+        // Don't use SetAssociations as I modify the particle directly.
+        particle.associations.clear();
+        particle.sense_x.clear();
+        particle.sense_y.clear();
+
+        particle.associations = associations;
+        particle.sense_x = sense_x;
+        particle.sense_y = sense_y;
+
     }
 }
 
@@ -189,8 +202,8 @@ void ParticleFilter::resample() {
     }
 }
 
-void ParticleFilter::SetAssociations(Particle &particle, std::vector<int> associations, std::vector<double> sense_x,
-                                     std::vector<double> sense_y) {
+Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x,
+                                         std::vector<double> sense_y) {
     //particle: the particle to assign each listed association, and association's (x,y) world coordinates mapping to
     // associations: The landmark id that goes along with each listed association
     // sense_x: the associations x mapping already converted to world coordinates
@@ -204,6 +217,8 @@ void ParticleFilter::SetAssociations(Particle &particle, std::vector<int> associ
     particle.associations = associations;
     particle.sense_x = sense_x;
     particle.sense_y = sense_y;
+
+    return particle;
 }
 
 string ParticleFilter::getAssociations(Particle best) {
